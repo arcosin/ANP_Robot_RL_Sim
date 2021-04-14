@@ -4,23 +4,6 @@ import gym
 # Implementation referenced from https://github.com/cyoon1729/Policy-Gradient-Methods/tree/master/sac
 # with minor modifications and changes
 
-env = gym.make("Pendulum-v0")44
-
-tau = 0.005
-gamma = 0.99
-value_lr = 3e-3
-q_lr = 3e-3
-policy_lr = 3e-3
-buffer_maxlen = 1000000
-
-state = env.reset()
-
-print("Starting here\n")
-agent = SACAgent(env, gamma, tau, value_lr, q_lr, policy_lr, buffer_maxlen)
-
-# train
-episode_rewards = mini_batch_train(env, agent, 50, 500, 64)
-
 def mini_batch_train(env, agent, max_episodes, max_steps, batch_size):
     episode_rewards = []
 
@@ -46,3 +29,20 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size):
             state = next_state
 
     return episode_rewards
+
+env = gym.make("Pendulum-v0")
+
+tau = 0.005
+gamma = 0.99
+value_lr = 3e-3
+q_lr = 3e-3
+policy_lr = 3e-3
+buffer_maxlen = 1000000
+
+state = env.reset()
+
+print("Starting here\n")
+agent = SACAgent(env, gamma, tau, value_lr, q_lr, policy_lr, buffer_maxlen)
+
+# train
+episode_rewards = mini_batch_train(env, agent, 50, 500, 64)
