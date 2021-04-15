@@ -8,10 +8,13 @@ import numpy as np
 from models import ValueNetwork, SoftQNetwork, PolicyNetwork, FeatureExtractor
 from replay_buffers import BasicBuffer
 
+
 class SACAgent:
     def __init__(self, env, gamma, tau, v_lr, q_lr, policy_lr, buffer_maxlen):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
+        self.firsttime = 0
+
         self.env = env
         self.action_range = [env.action_space.low, env.action_space.high]
         #self.obs_dim = env.observation_space.shape[0]
@@ -75,8 +78,6 @@ class SACAgent:
         features = self.feature_net(inp)
         features = features.view(-1, self.input_size)
         
-        #state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-        
         mean, log_std = self.policy_net.forward(features)
         std = log_std.exp()
         
@@ -107,8 +108,8 @@ class SACAgent:
         dones = dones.view(dones.size(0), -1)
 
         # Process images
-        features = self.feature_net(states) # Properly shaped due to batching
-        next_features = self.feature_net(next_states)
+        features = self.feature_net(states) #.contiguous() # Properly shaped due to batching
+        next_features = self.feature_net(next_states) #.contiguous()
 
         features = torch.reshape(features, (64, self.input_size))
         next_features = torch.reshape(next_features, (64, self.input_size))
@@ -131,15 +132,15 @@ class SACAgent:
 
         # update value and q networks        
         self.value_optimizer.zero_grad()
-        v_loss.backward()
+        v_loss.backward(retain_graph=True)
         self.value_optimizer.step()
         
         self.q1_optimizer.zero_grad()
-        q1_loss.backward()
+        q1_loss.backward(retain_graph=True)
         self.q1_optimizer.step()
 
         self.q2_optimizer.zero_grad()
-        q2_loss.backward()
+        q2_loss.backward(retain_graph=True)
         self.q2_optimizer.step()
         
         # delayed update for policy network and target q networks
@@ -152,7 +153,7 @@ class SACAgent:
             policy_loss = (log_pi - min_q).mean()
             
             self.policy_optimizer.zero_grad()
-            policy_loss.backward()
+            policy_loss.backward(retain_graph=True)
             self.policy_optimizer.step()
         
             # target networks

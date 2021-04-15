@@ -10,7 +10,6 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size):
     for episode in range(max_episodes):
         _ = env.reset()
         state = env.render(mode = 'rgb_array')
-        print("\tgot ep state")
         episode_reward = 0
         
         for step in range(max_steps):
@@ -25,9 +24,7 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size):
             episode_reward += reward
 
             if len(agent.replay_buffer) > batch_size:
-                print("first updoot call")
-                agent.update(batch_size)   
-                exit()
+                agent.update(batch_size)  
 
             if done or step == max_steps-1:
                 episode_rewards.append(episode_reward)
